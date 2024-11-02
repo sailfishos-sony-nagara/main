@@ -4,3 +4,5 @@
 
 This repository contains currently documentation and will host the issues.
 
+See [Wiki](https://github.com/sailfishos-sony-nagara/main/wiki) for documents
+
