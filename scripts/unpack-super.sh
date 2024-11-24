@@ -19,11 +19,15 @@ if [ $# -ne 1 ]; then
     show_help
 fi
 
-IMAGE=$1
-SDIR=`dirname "$IMAGE"`/super
-echo Unpacking into $SDIR
+IMAGE=$(echo "$1"/super_*)
+SDIR=$1/super
+
+echo Unpacking file: $IMAGE
+echo Target directory: $SDIR
 
 mkdir -p "$SDIR"
 lpunpack "$IMAGE" "$SDIR"
 
+echo
 echo "Super image $IMAGE unpacked into $SDIR"
+echo
