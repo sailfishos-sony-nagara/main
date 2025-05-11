@@ -18,7 +18,7 @@ Port is based on Lineage 21 with Sony stock-based drivers. Linux kernel: 5.10
 - Touch, multitouch
 - LED
 - Audio
-- Bluetooth
+- Bluetooth (playback)
 - GPS
 - WLAN (connect)
 - Keys (Vol +/-, power)
