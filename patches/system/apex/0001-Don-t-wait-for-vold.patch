@@ -1,0 +1,38 @@
+From 5d3935b0fe8f7025b70a676350f5d3f75f443eb7 Mon Sep 17 00:00:00 2001
+From: Rinigus <rinigus.git@gmail.com>
+Date: Tue, 27 May 2025 22:06:10 +0300
+Subject: [PATCH] Don't wait for vold
+
+Change-Id: Ia4d22b87b8173b1a22ead4250cc0d660db73f864
+---
+ apexd/apexd_checkpoint_vold.cpp | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/apexd/apexd_checkpoint_vold.cpp b/apexd/apexd_checkpoint_vold.cpp
+index a9c522ce..07d468e1 100644
+--- a/apexd/apexd_checkpoint_vold.cpp
++++ b/apexd/apexd_checkpoint_vold.cpp
+@@ -29,13 +29,13 @@ namespace android {
+ namespace apex {
+ 
+ Result<VoldCheckpointInterface> VoldCheckpointInterface::Create() {
+-  auto vold_service =
+-      defaultServiceManager()->getService(android::String16("vold"));
+-  if (vold_service != nullptr) {
+-    return VoldCheckpointInterface(
+-        android::interface_cast<android::os::IVold>(vold_service));
+-  }
+-  return Errorf("Failed to retrieve vold service.");
++  // auto vold_service =
++  //     defaultServiceManager()->getService(android::String16("vold"));
++  // if (vold_service != nullptr) {
++  //   return VoldCheckpointInterface(
++  //       android::interface_cast<android::os::IVold>(vold_service));
++  // }
++  return Errorf("Skipping retrieving vold service.");
+ }
+ 
+ VoldCheckpointInterface::VoldCheckpointInterface(sp<IVold>&& vold_service) {
+-- 
+2.25.1
+
