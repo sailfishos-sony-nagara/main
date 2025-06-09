@@ -12,6 +12,9 @@ Port is based on Lineage 21 with Sony stock-based drivers. Linux kernel: 5.10
 
 ### Software stack
 
+- Jolla Store access
+- Storage encryption
+
 ### Working hardware
 
 - Display
@@ -21,7 +24,9 @@ Port is based on Lineage 21 with Sony stock-based drivers. Linux kernel: 5.10
 - Bluetooth (playback)
 - GPS
 - WLAN (connect)
+- Cellular network: voice, data, not SMS
 - Keys (Vol +/-, power)
+- USB charging
 - Wireless Charging
 - Sensors: light, proximity, gyroscope, acceloremeter, compass
 - Vibrator
