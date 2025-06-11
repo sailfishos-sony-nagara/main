@@ -28,6 +28,7 @@ Port is based on Lineage 21 with Sony stock-based drivers. Linux kernel: 5.10
 - Keys (Vol +/-, power)
 - USB charging
 - Wireless Charging
+- Fingerprint
 - Sensors: light, proximity, gyroscope, acceloremeter, compass
 - Vibrator
 
