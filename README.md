@@ -24,7 +24,8 @@ Port is based on Lineage 21 with Sony stock-based drivers. Linux kernel: 5.10
 - Bluetooth (playback)
 - GPS
 - WLAN (connect)
-- Cellular network: voice, data, not SMS
+- Cellular network: voice, data, cannot receive SMS
+- Camera: 1 back and front camera
 - Keys (Vol +/-, power)
 - USB charging
 - Wireless Charging
