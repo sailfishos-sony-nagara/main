@@ -14,6 +14,7 @@ Port is based on Lineage 21 with Sony stock-based drivers. Linux kernel: 5.10
 
 - Jolla Store access
 - Storage encryption
+- Kernel and OS OTA updates
 
 ### Working hardware
 
