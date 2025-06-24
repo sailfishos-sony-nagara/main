@@ -4,7 +4,9 @@
 
 This repository contains documentation and hosts the issues.
 
-See [Wiki](https://github.com/sailfishos-sony-nagara/main/wiki) for documents
+## Documentation
+
+See [Wiki](https://github.com/sailfishos-sony-nagara/main/wiki) for documents.
 
 ## Current state
 
@@ -13,7 +15,7 @@ Port is based on Lineage 21 with Sony stock-based drivers. Linux kernel: 5.10
 ### Software stack
 
 - Jolla Store access
-- Storage encryption
+- Storage encryption (hardware backed)
 - Kernel and OS OTA updates
 
 ### Working hardware
@@ -23,6 +25,7 @@ Port is based on Lineage 21 with Sony stock-based drivers. Linux kernel: 5.10
 - LED
 - Audio
 - Bluetooth (playback)
+- Calls (earpiece, speaker)
 - GPS
 - WLAN (connect)
 - Cellular network: voice, data, cannot receive SMS
@@ -35,3 +38,6 @@ Port is based on Lineage 21 with Sony stock-based drivers. Linux kernel: 5.10
 - Vibrator
 - SD card
 
+**Critical issues**: [Critical](https://github.com/sailfishos-sony-nagara/main/issues?q=is%3Aissue%20state%3Aopen%20label%3Acritical)
+
+**Current issues**: [All issues](https://github.com/sailfishos-sony-nagara/main/issues)
