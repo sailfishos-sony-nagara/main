@@ -38,6 +38,7 @@ Port is based on Lineage 21 with Sony stock-based drivers. Linux kernel: 5.10
 - Sensors: light, proximity, gyroscope, acceloremeter, compass
 - Vibrator
 - SD card
+- Double tap to wake
 
 **Critical issues**: [Critical](https://github.com/sailfishos-sony-nagara/main/issues?q=is%3Aissue%20state%3Aopen%20label%3Acritical)
 
