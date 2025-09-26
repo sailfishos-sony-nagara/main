@@ -29,7 +29,7 @@ Port is based on Lineage 21 with Sony stock-based drivers. Linux kernel: 5.10
 - GPS
 - WLAN (connect and hotspot)
 - Cellular network: voice, data, SMS
-- VoLTE: voice, not SMS
+- VoLTE: voice, SMS
 - Camera: 1 (out of 3) back camera and front camera
 - Keys (Vol +/-, camera, power)
 - USB charging
