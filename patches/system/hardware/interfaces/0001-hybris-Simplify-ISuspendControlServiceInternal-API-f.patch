@@ -1,0 +1,211 @@
+From 038e1442a095303ddf34876fbeb7bad1dacbc377 Mon Sep 17 00:00:00 2001
+From: Rinigus <rinigus.git@gmail.com>
+Date: Sat, 11 Oct 2025 20:33:15 +0300
+Subject: [PATCH 1/2] [hybris] Simplify ISuspendControlServiceInternal API for
+ enabling and disabling autosuspend
+
+Change-Id: I162fdea5997bf15cd0ffe61565f13ae71bce8291
+---
+ suspend/1.0/default/SuspendControlService.cpp | 18 +++++++---
+ suspend/1.0/default/SuspendControlService.h   |  3 +-
+ suspend/1.0/default/SystemSuspend.cpp         | 36 ++-----------------
+ suspend/1.0/default/SystemSuspend.h           | 15 +++-----
+ .../ISuspendControlServiceInternal.aidl       | 11 ++++--
+ 5 files changed, 30 insertions(+), 53 deletions(-)
+
+diff --git a/suspend/1.0/default/SuspendControlService.cpp b/suspend/1.0/default/SuspendControlService.cpp
+index faadecb..6529a92 100644
+--- a/suspend/1.0/default/SuspendControlService.cpp
++++ b/suspend/1.0/default/SuspendControlService.cpp
+@@ -151,11 +151,21 @@ void SuspendControlServiceInternal::setSuspendService(const wp<SystemSuspend>& s
+     mSuspend = suspend;
+ }
+ 
+-binder::Status SuspendControlServiceInternal::enableAutosuspend(const sp<IBinder>& token,
+-                                                                bool* _aidl_return) {
++binder::Status SuspendControlServiceInternal::enableAutosuspend(bool* _aidl_return) {
+     const auto suspendService = mSuspend.promote();
+-    return retOk(suspendService != nullptr && suspendService->enableAutosuspend(token),
+-                 _aidl_return);
++    return retOk(suspendService != nullptr && suspendService->enableAutosuspend(),
++                  _aidl_return);
++}
++
++binder::Status SuspendControlServiceInternal::disableAutosuspend(bool* _aidl_return) {
++    const auto suspendService = mSuspend.promote();
++    if (suspendService) {
++        suspendService->disableAutosuspend();
++        *_aidl_return = true;
++    } else {
++        *_aidl_return = false;
++    }
++    return binder::Status::ok();
+ }
+ 
+ binder::Status SuspendControlServiceInternal::forceSuspend(bool* _aidl_return) {
+diff --git a/suspend/1.0/default/SuspendControlService.h b/suspend/1.0/default/SuspendControlService.h
+index 7d7e0ae..b40cce4 100644
+--- a/suspend/1.0/default/SuspendControlService.h
++++ b/suspend/1.0/default/SuspendControlService.h
+@@ -71,7 +71,8 @@ class SuspendControlServiceInternal : public BnSuspendControlServiceInternal {
+     SuspendControlServiceInternal() = default;
+     ~SuspendControlServiceInternal() override = default;
+ 
+-    binder::Status enableAutosuspend(const sp<IBinder>& token, bool* _aidl_return) override;
++    binder::Status enableAutosuspend(bool* _aidl_return) override;
++    binder::Status disableAutosuspend(bool* _aidl_return) override;
+     binder::Status forceSuspend(bool* _aidl_return) override;
+     binder::Status getSuspendStats(SuspendInfo* _aidl_return) override;
+     binder::Status getWakeLockStats(std::vector<WakeLockInfo>* _aidl_return) override;
+diff --git a/suspend/1.0/default/SystemSuspend.cpp b/suspend/1.0/default/SystemSuspend.cpp
+index 4aa5189..aac3c36 100644
+--- a/suspend/1.0/default/SystemSuspend.cpp
++++ b/suspend/1.0/default/SystemSuspend.cpp
+@@ -174,8 +174,7 @@ SystemSuspend::SystemSuspend(unique_fd wakeupCountFd, unique_fd stateFd, unique_
+     }
+ }
+ 
+-bool SystemSuspend::enableAutosuspend(const sp<IBinder>& token) {
+-    auto tokensLock = std::lock_guard(mAutosuspendClientTokensLock);
++bool SystemSuspend::enableAutosuspend() {
+     auto autosuspendLock = std::lock_guard(mAutosuspendLock);
+ 
+     // Disable zygote kernel wakelock, since explicitly attempting to
+@@ -186,13 +185,6 @@ bool SystemSuspend::enableAutosuspend(const sp<IBinder>& token) {
+         PLOG(ERROR) << "error writing " << kZygoteKernelWakelock << " to " << kSysPowerWakeUnlock;
+     }
+ 
+-    bool hasToken = std::find(mAutosuspendClientTokens.begin(), mAutosuspendClientTokens.end(),
+-                              token) != mAutosuspendClientTokens.end();
+-
+-    if (!hasToken) {
+-        mAutosuspendClientTokens.push_back(token);
+-    }
+-
+     if (mAutosuspendEnabled) {
+         LOG(ERROR) << "Autosuspend already started.";
+         return false;
+@@ -204,7 +196,6 @@ bool SystemSuspend::enableAutosuspend(const sp<IBinder>& token) {
+ }
+ 
+ void SystemSuspend::disableAutosuspendLocked() {
+-    mAutosuspendClientTokens.clear();
+     if (mAutosuspendEnabled) {
+         mAutosuspendEnabled = false;
+         mAutosuspendCondVar.notify_all();
+@@ -213,28 +204,13 @@ void SystemSuspend::disableAutosuspendLocked() {
+ }
+ 
+ void SystemSuspend::disableAutosuspend() {
+-    auto tokensLock = std::lock_guard(mAutosuspendClientTokensLock);
+     auto autosuspendLock = std::lock_guard(mAutosuspendLock);
+     disableAutosuspendLocked();
+ }
+ 
+-void SystemSuspend::checkAutosuspendClientsLivenessLocked() {
+-    // Ping autosuspend client tokens, remove any dead tokens from the list.
+-    // mAutosuspendLock must not be held when calling this, as that could lead to a deadlock
+-    // if pingBinder() can't be processed by system_server because it's Binder thread pool is
+-    // exhausted and blocked on acquire/release wakelock calls.
+-    mAutosuspendClientTokens.erase(
+-        std::remove_if(mAutosuspendClientTokens.begin(), mAutosuspendClientTokens.end(),
+-                       [](const sp<IBinder>& token) { return token->pingBinder() != OK; }),
+-        mAutosuspendClientTokens.end());
+-}
+ 
+-bool SystemSuspend::hasAliveAutosuspendTokenLocked() {
+-    return !mAutosuspendClientTokens.empty();
+-}
+ 
+ SystemSuspend::~SystemSuspend(void) {
+-    auto tokensLock = std::lock_guard(mAutosuspendClientTokensLock);
+     auto autosuspendLock = std::unique_lock(mAutosuspendLock);
+ 
+     // signal autosuspend thread to shut down
+@@ -355,18 +331,10 @@ void SystemSuspend::initAutosuspendLocked() {
+ 
+             bool success;
+             {
+-                auto tokensLock = std::lock_guard(mAutosuspendClientTokensLock);
+-                checkAutosuspendClientsLivenessLocked();
+-
+                 autosuspendLock.lock();
+                 base::ScopedLockAssertion autosuspendLocked(mAutosuspendLock);
+ 
+-                if (!hasAliveAutosuspendTokenLocked()) {
+-                    disableAutosuspendLocked();
+-                    continue;
+-                }
+-
+-                // Check suspend counter hasn't increased while checking client liveness
++                // Check suspend counter
+                 if (mSuspendCounter > 0) {
+                     continue;
+                 }
+diff --git a/suspend/1.0/default/SystemSuspend.h b/suspend/1.0/default/SystemSuspend.h
+index 5f69ce8..37a46eb 100644
+--- a/suspend/1.0/default/SystemSuspend.h
++++ b/suspend/1.0/default/SystemSuspend.h
+@@ -84,7 +84,7 @@ class SystemSuspend : public RefBase {
+                   bool useSuspendCounter = true);
+     void incSuspendCounter(const std::string& name);
+     void decSuspendCounter(const std::string& name);
+-    bool enableAutosuspend(const sp<IBinder>& token);
++    bool enableAutosuspend();
+     void disableAutosuspend();
+     bool forceSuspend();
+ 
+@@ -101,23 +101,16 @@ class SystemSuspend : public RefBase {
+    private:
+     ~SystemSuspend(void) override;
+ 
+-    std::mutex mAutosuspendClientTokensLock;
+-    std::mutex mAutosuspendLock ACQUIRED_AFTER(mAutosuspendClientTokensLock);
++    std::mutex mAutosuspendLock;
+     std::mutex mSuspendInfoLock;
+ 
+-    void initAutosuspendLocked()
+-        EXCLUSIVE_LOCKS_REQUIRED(mAutosuspendClientTokensLock, mAutosuspendLock);
+-    void disableAutosuspendLocked()
+-        EXCLUSIVE_LOCKS_REQUIRED(mAutosuspendClientTokensLock, mAutosuspendLock);
+-    void checkAutosuspendClientsLivenessLocked()
+-        EXCLUSIVE_LOCKS_REQUIRED(mAutosuspendClientTokensLock);
+-    bool hasAliveAutosuspendTokenLocked() EXCLUSIVE_LOCKS_REQUIRED(mAutosuspendClientTokensLock);
++    void initAutosuspendLocked() EXCLUSIVE_LOCKS_REQUIRED(mAutosuspendLock);
++    void disableAutosuspendLocked() EXCLUSIVE_LOCKS_REQUIRED(mAutosuspendLock);
+     void logKernelWakeLockStats();
+ 
+     std::condition_variable mAutosuspendCondVar GUARDED_BY(mAutosuspendLock);
+     uint32_t mSuspendCounter GUARDED_BY(mAutosuspendLock);
+ 
+-    std::vector<sp<IBinder>> mAutosuspendClientTokens GUARDED_BY(mAutosuspendClientTokensLock);
+     std::atomic<bool> mAutosuspendEnabled GUARDED_BY(mAutosuspendLock){false};
+     std::atomic<bool> mAutosuspendThreadCreated GUARDED_BY(mAutosuspendLock){false};
+ 
+diff --git a/suspend/aidl/android/system/suspend/internal/ISuspendControlServiceInternal.aidl b/suspend/aidl/android/system/suspend/internal/ISuspendControlServiceInternal.aidl
+index 8e0a9a2..2d9916f 100644
+--- a/suspend/aidl/android/system/suspend/internal/ISuspendControlServiceInternal.aidl
++++ b/suspend/aidl/android/system/suspend/internal/ISuspendControlServiceInternal.aidl
+@@ -29,11 +29,16 @@ interface ISuspendControlServiceInternal {
+     /**
+      * Starts automatic system suspension.
+      *
+-     * @param token token registering automatic system suspension.
+-     * When all registered tokens die automatic system suspension is disabled.
+      * @return true on success, false otherwise.
+      */
+-    boolean enableAutosuspend(IBinder token);
++    boolean enableAutosuspend();
++
++    /**
++     * Stops automatic system suspension.
++     *
++     * @return true on success, false otherwise.
++     */
++    boolean disableAutosuspend();
+ 
+     /**
+      * Suspends the system even if there are wakelocks being held.
+-- 
+2.25.1
+
