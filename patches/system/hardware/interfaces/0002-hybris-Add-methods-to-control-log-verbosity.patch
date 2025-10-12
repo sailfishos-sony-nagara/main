@@ -1,9 +1,9 @@
-From bebe94c6d4beddf11c18767aa1109da0797f88f4 Mon Sep 17 00:00:00 2001
+From 7ccd85519a88e451014319e7c3f1d6f184953282 Mon Sep 17 00:00:00 2001
 From: Rinigus <rinigus.git@gmail.com>
 Date: Sat, 11 Oct 2025 20:53:07 +0300
-Subject: [PATCH 2/2] [hybris] Add methods to control log verbosity
+Subject: [PATCH 2/3] [hybris] Add methods to control log verbosity
 
-Change-Id: Ib58d152630b40da66a5849ff9d8cb559e5a3266a
+Change-Id: Ib9893724edbb0720df5b31f649e824e65afd82d9
 ---
  suspend/1.0/default/SuspendControlService.cpp | 22 ++++++++++++++++++
  suspend/1.0/default/SuspendControlService.h   |  2 ++

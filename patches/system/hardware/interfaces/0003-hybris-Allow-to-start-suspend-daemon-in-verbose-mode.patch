@@ -1,0 +1,121 @@
+From 272ce11fe89fb0871042ed09076b6626ad360e21 Mon Sep 17 00:00:00 2001
+From: Rinigus <rinigus.git@gmail.com>
+Date: Sun, 12 Oct 2025 09:30:58 +0300
+Subject: [PATCH 3/3] [hybris] Allow to start suspend daemon in verbose mode
+
+Added command line option -v that starts the service in verbose mode
+
+Change-Id: I77ffc678b23b67c5e1a4cd86c5334f5235ca86a5
+---
+ suspend/1.0/default/SystemSuspend.cpp | 45 ++++++++++++++-------------
+ suspend/1.0/default/SystemSuspend.h   |  2 +-
+ suspend/1.0/default/main.cpp          | 17 ++++++++--
+ 3 files changed, 39 insertions(+), 25 deletions(-)
+
+diff --git a/suspend/1.0/default/SystemSuspend.cpp b/suspend/1.0/default/SystemSuspend.cpp
+index 943edda..05b16f5 100644
+--- a/suspend/1.0/default/SystemSuspend.cpp
++++ b/suspend/1.0/default/SystemSuspend.cpp
+@@ -137,28 +137,29 @@ static struct SuspendTime readSuspendTime(int fd) {
+ }
+ 
+ SystemSuspend::SystemSuspend(unique_fd wakeupCountFd, unique_fd stateFd, unique_fd suspendStatsFd,
+-                             size_t maxStatsEntries, unique_fd kernelWakelockStatsFd,
+-                             unique_fd wakeupReasonsFd, unique_fd suspendTimeFd,
+-                             const SleepTimeConfig& sleepTimeConfig,
+-                             const sp<SuspendControlService>& controlService,
+-                             const sp<SuspendControlServiceInternal>& controlServiceInternal,
+-                             bool useSuspendCounter)
+-    : mSuspendCounter(0),
+-      mWakeupCountFd(std::move(wakeupCountFd)),
+-      mStateFd(std::move(stateFd)),
+-      mSuspendStatsFd(std::move(suspendStatsFd)),
+-      mSuspendTimeFd(std::move(suspendTimeFd)),
+-      kSleepTimeConfig(sleepTimeConfig),
+-      mSleepTime(sleepTimeConfig.baseSleepTime),
+-      mNumConsecutiveBadSuspends(0),
+-      mControlService(controlService),
+-      mControlServiceInternal(controlServiceInternal),
+-      mStatsList(maxStatsEntries, std::move(kernelWakelockStatsFd)),
+-      mWakeupList(maxStatsEntries),
+-      mUseSuspendCounter(useSuspendCounter),
+-      mWakeLockFd(-1),
+-      mWakeUnlockFd(-1),
+-      mWakeupReasonsFd(std::move(wakeupReasonsFd)) {
++                              size_t maxStatsEntries, unique_fd kernelWakelockStatsFd,
++                              unique_fd wakeupReasonsFd, unique_fd suspendTimeFd,
++                              const SleepTimeConfig& sleepTimeConfig,
++                              const sp<SuspendControlService>& controlService,
++                              const sp<SuspendControlServiceInternal>& controlServiceInternal,
++                              bool useSuspendCounter, bool verbose)
++     : mSuspendCounter(0),
++       mVerboseLogging(verbose),
++       mWakeupCountFd(std::move(wakeupCountFd)),
++       mStateFd(std::move(stateFd)),
++       mSuspendStatsFd(std::move(suspendStatsFd)),
++       mSuspendTimeFd(std::move(suspendTimeFd)),
++       kSleepTimeConfig(sleepTimeConfig),
++       mSleepTime(sleepTimeConfig.baseSleepTime),
++       mNumConsecutiveBadSuspends(0),
++       mControlService(controlService),
++       mControlServiceInternal(controlServiceInternal),
++       mStatsList(maxStatsEntries, std::move(kernelWakelockStatsFd)),
++       mWakeupList(maxStatsEntries),
++       mUseSuspendCounter(useSuspendCounter),
++       mWakeLockFd(-1),
++       mWakeUnlockFd(-1),
++       mWakeupReasonsFd(std::move(wakeupReasonsFd)) {
+     mControlServiceInternal->setSuspendService(this);
+ 
+     if (!mUseSuspendCounter) {
+diff --git a/suspend/1.0/default/SystemSuspend.h b/suspend/1.0/default/SystemSuspend.h
+index 3296232..ae4d38d 100644
+--- a/suspend/1.0/default/SystemSuspend.h
++++ b/suspend/1.0/default/SystemSuspend.h
+@@ -81,7 +81,7 @@ class SystemSuspend : public RefBase {
+                   const SleepTimeConfig& sleepTimeConfig,
+                   const sp<SuspendControlService>& controlService,
+                   const sp<SuspendControlServiceInternal>& controlServiceInternal,
+-                  bool useSuspendCounter = true);
++                  bool useSuspendCounter = true, bool verbose = false);
+     void incSuspendCounter(const std::string& name);
+     void decSuspendCounter(const std::string& name);
+     bool enableAutosuspend();
+diff --git a/suspend/1.0/default/main.cpp b/suspend/1.0/default/main.cpp
+index 6843dea..f20f12b 100644
+--- a/suspend/1.0/default/main.cpp
++++ b/suspend/1.0/default/main.cpp
+@@ -70,7 +70,20 @@ static constexpr uint32_t kDefaultShortSuspendThresholdMillis = 0;
+ static constexpr bool kDefaultFailedSuspendBackoffEnabled = true;
+ static constexpr bool kDefaultShortSuspendBackoffEnabled = false;
+ 
+-int main() {
++int main(int argc, char* argv[]) {
++    bool verbose = false;
++    int opt;
++    while ((opt = getopt(argc, argv, "v")) != -1) {
++        switch (opt) {
++            case 'v':
++                verbose = true;
++                break;
++            default:
++                LOG(ERROR) << "Usage: " << argv[0] << " [-v]";
++                return 1;
++        }
++    }
++
+     unique_fd wakeupCountFd{TEMP_FAILURE_RETRY(open(kSysPowerWakeupCount, O_CLOEXEC | O_RDWR))};
+     if (wakeupCountFd < 0) {
+         PLOG(ERROR) << "error opening " << kSysPowerWakeupCount;
+@@ -150,7 +163,7 @@ int main() {
+     sp<SystemSuspend> suspend = new SystemSuspend(
+         std::move(wakeupCountFd), std::move(stateFd), std::move(suspendStatsFd), kStatsCapacity,
+         std::move(kernelWakelockStatsFd), std::move(wakeupReasonsFd), std::move(suspendTimeFd),
+-        sleepTimeConfig, suspendControl, suspendControlInternal, true /* mUseSuspendCounter*/);
++        sleepTimeConfig, suspendControl, suspendControlInternal, true /* mUseSuspendCounter*/, verbose);
+ 
+     std::shared_ptr<SystemSuspendAidl> suspendAidl =
+         ndk::SharedRefBase::make<SystemSuspendAidl>(suspend.get());
+-- 
+2.25.1
+
