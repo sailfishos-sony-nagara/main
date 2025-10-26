@@ -30,5 +30,5 @@ repopick -f 423304 419385
 # Apply Hybris patches
 hybris-patches/apply-patches.sh --mb
 
-# Apply Nagara patches
+# Apply Nagara patches using patches/apply-patches.sh
 "$APPLY_PATCHES_SCRIPT"
