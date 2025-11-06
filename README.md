@@ -1,6 +1,6 @@
 # Sailfish OS port to Sony Xperia Nagara devices
 
-**Status:** Work in progress
+**Status:** Testing
 
 This repository contains documentation and hosts the issues.
 

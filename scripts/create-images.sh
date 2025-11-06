@@ -4,7 +4,7 @@ set -e
 
 # defaults
 VERSION=testing
-DEVICES="xqcq54 xqct54"
+DEVICES="xqct54 xqcq54"
 ISMIC="no"
 RELEASE=""
 
@@ -63,19 +63,35 @@ if [ "$ISMIC" == "no" ]; then
 
     for device in $DEVICES
     do
-	rm Jolla-@RELEASE@-$device-@ARCH@.ks || echo No old KS file, continuing
-	"$scriptdir/get_ks.sh" $URL $device
-	sudo $PLATFORM_SDK_ROOT/sdks/sfossdk/mer-sdk-chroot \
-	     "$scriptdir/create-images.sh" \
-	     --mic \
-	     --release $RELEASE --version $VERSION --device $device
+		rm Jolla-@RELEASE@-$device-@ARCH@.ks || echo No old KS file, continuing
+		"$scriptdir/get_ks.sh" $URL $device
+		sudo $PLATFORM_SDK_ROOT/sdks/sfossdk/sdk-chroot \
+			"$scriptdir/create-images.sh" \
+			--mic \
+			--release $RELEASE --version $VERSION --device $device
     done
     exit
 fi
 
 device=$DEVICES
+
+case "$DEVICE" in
+  xqct54)
+    PRETTY_DEVICE="Xperia-1-IV"
+    ;;
+  xqcq54)
+    PRETTY_DEVICE="Xperia-5-IV"
+    ;;
+  *)
+	echo "Unknown device: $device"
+	exit 1
+    ;;
+esac
+
+DEVICE_UPPER=${device^^}
+
 echo
-echo Building for $RELEASE $device
+echo Building for $RELEASE $PRETTY_DEVICE $DEVICE_UPPER
 
 source ~/.hadk.pre-$device
 source ~/.hadk.post
@@ -83,7 +99,13 @@ source ~/.hadk.post
 RELEASE_DIR=$ANDROID_ROOT/releases/$RELEASE
 cd $RELEASE_DIR
 
-sudo mic create loop --arch=$PORT_ARCH \
-     --tokenmap=ARCH:$PORT_ARCH,RELEASE:$RELEASE,EXTRA_NAME:$EXTRA_NAME,DEVICEMODEL:$DEVICE \
-     --record-pkgs=name,url --outdir=sfe-$DEVICE-$RELEASE$EXTRA_NAME \
-     Jolla-@RELEASE@-$device-@ARCH@.ks
+sudo mic create fs --arch=$PORT_ARCH \
+	--pack-to=sfe-$device-$RELEASE$EXTRA_NAME.tar.gz \
+	--tokenmap=ARCH:$PORT_ARCH,RELEASE:$RELEASE,EXTRA_NAME:$EXTRA_NAME,DEVICEMODEL:$device \
+	--record-pkgs=name,url \
+	--outdir=mic Jolla-@RELEASE@-$device-@ARCH@.ks
+
+sudo chown -R "$(id -un):$(id -gn)" mic
+
+mv mic/sailfishos-$device-release-$RELEASE.zip \
+   sailfishos-$PRETTY_DEVICE-$DEVICE_UPPER-$RELEASE-$VERSION.zip
