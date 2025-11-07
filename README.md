@@ -2,11 +2,16 @@
 
 **Status:** Testing
 
+**Current versions**:
+- **Used tag**: 0.1
+- **Sailfish OS**: 5.0.0.62
+- **Lineage 21**: 20251105
+
 This repository contains documentation and hosts the issues.
 
 ## Documentation
 
-See [Wiki](https://github.com/sailfishos-sony-nagara/main/wiki) for documents.
+See [Wiki](https://github.com/sailfishos-sony-nagara/main/wiki) for documents. These include users guides and development documents.
 
 ## Current state
 
