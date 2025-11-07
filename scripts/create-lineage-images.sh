@@ -56,16 +56,17 @@ DATE=$(date +%Y%m%d)
 
 # Required image files for flashing
 REQUIRED_IMAGES=(
-    "recovery.img"
-    "vbmeta.img"
+    "boot.img"
+    "dtbo.img"
     "odm.img"
     "product.img"
-    "system_ext.img"
+    "recovery.img"
     "system.img"
+    "system_ext.img"
+    "vbmeta.img"
     "vendor.img"
-    "vendor_dlkm.img"
-    "boot.img"
     "vendor_boot.img"
+    "vendor_dlkm.img"
 )
 
 # Function to get date from newest image
