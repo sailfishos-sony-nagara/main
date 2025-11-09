@@ -2,9 +2,11 @@
 
 set -e
 
+source ~/.hadk.env
+
 # defaults
 VERSION=testing
-DEVICES="xqct54 xqcq54"
+DEVICES="xqcq54 xqct54"
 ISMIC="no"
 RELEASE=""
 
@@ -36,8 +38,6 @@ while :; do
 done
 
 EXTRA_NAME=
-
-source ~/.hadk.env
 
 # check if all is specified
 [ -z "$RELEASE" ] && (echo "Release has to be specified with --release option" && exit -1)
@@ -77,7 +77,7 @@ fi
 
 device=$DEVICES
 
-case "$DEVICE" in
+case "$device" in
   xqct54)
     PRETTY_DEVICE="Xperia-1-IV"
     ;;
@@ -112,6 +112,11 @@ cd $RELEASE_DIR
 if [ "$VERSION" == "testing" ]; then
 	sed -i "s|/latest/|/${RELMAJORMINOR}/|g" Jolla-@RELEASE@-$device-@ARCH@.ks
 	sed -i "s|/sailfishos_latest|/sailfishos_${RELMAJORMINOR}|g" Jolla-@RELEASE@-$device-@ARCH@.ks
+fi
+
+if [ -d "mic" ]; then
+	echo "Remove previous build"
+	rm -rf mic
 fi
 
 sudo mic create fs --arch=$PORT_ARCH \
