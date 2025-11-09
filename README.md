@@ -2,11 +2,6 @@
 
 **Status:** Testing
 
-**Current versions**:
-- **Used tag**: 0.1
-- **Sailfish OS**: 5.0.0.62
-- **Lineage 21**: 20251105
-
 This repository contains documentation and hosts the issues.
 
 ## Documentation
