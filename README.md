@@ -17,6 +17,24 @@ See [Wiki](https://github.com/sailfishos-sony-nagara/main/wiki) for documents. T
 
 Port is based on Lineage 21 with Sony stock-based drivers. Linux kernel: 5.10
 
+### Supported devices
+
+The port requires an unlockable bootloader and targets the following models:
+
+- Xperia 1 IV
+  - **Codename**: PDX223
+  - **Models**:
+    - **XQ-CT54**: SIM + eSIM variant; images released and tested
+    - **XQ-CT72**: Dual physical SIM; expected to work — open an issue if you have this device to help track its status
+   
+- Xperia 5 IV
+  - **Codename**: PDX224
+  - **Models**:
+    - **XQ-CQ54**: SIM + eSIM variant; images will be released soon, with some testing performed 
+    - **XQ-CQ72**: Dual physical SIM; expected to work — open an issue if you have this device to help track its status
+
+For other models of these phones, please contact the developers by opening an issue or via [FSO](https://forum.sailfishos.org).
+
 ### Software stack
 
 - Jolla Store access
