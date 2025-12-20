@@ -54,7 +54,7 @@ For other models of these phones, please contact the developers by opening an is
 - Wired headphones
 - Wireless Charging
 - Fingerprint
-- Sensors: light, proximity, gyroscope, acceloremeter, compass, pickup sensor
+- Sensors: light, proximity, gyroscope, acceloremeter, compass, pickup
 - Vibrator
 - SD card
 - Double tap to wake
