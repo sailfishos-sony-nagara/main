@@ -1,6 +1,6 @@
 # Sailfish OS port to Sony Xperia Nagara devices
 
-**Status:** Testing
+**Status:** Released
 
 This repository contains documentation and hosts the issues.
 
@@ -35,6 +35,7 @@ For other models of these phones, please contact the developers by opening an is
 - Jolla Store access
 - Storage encryption (hardware backed)
 - Kernel and OS OTA updates
+- Act dead mode (powerup through charger)
 
 ### Working hardware
 
