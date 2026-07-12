@@ -18,14 +18,16 @@ fi
 cd "$ANDROID_ROOT"
 
 # Sync sources
-repo sync
+repo sync "$@"
 
 # Set environment
 source build/envsetup.sh
 
 # Apply repopicks
-repopick 423299 423083 410938
-repopick -f 423304 419385
+REPOPICKS="423299 423083 410938 423304 419385"
+for repopick_id in $REPOPICKS; do
+    repopick -f "$repopick_id"
+done
 
 # Apply Hybris patches
 hybris-patches/apply-patches.sh --mb
