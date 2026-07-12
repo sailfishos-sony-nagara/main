@@ -114,7 +114,7 @@ def local_commit_summaries(project_dir, local_commits):
     for commit in reversed(local_commits):
         result = run_git(
             project_dir,
-            ["show", "--no-patch", "--format=%h %an: %s", commit],
+            ["show", "--no-patch", "--format=%an: %s", commit],
             check=True,
         )
         summaries.append(result.stdout.strip())
@@ -150,6 +150,18 @@ def is_reachable_from_remote(project_dir, revision):
         if result.returncode == 0:
             return True
     return False
+
+
+def normalize_manifest_data(root):
+    for element in root.iter():
+        groups = element.get("groups")
+        if not groups:
+            continue
+
+        normalized_groups = ",".join(
+            sorted(group.strip() for group in groups.split(",") if group.strip())
+        )
+        element.set("groups", normalized_groups)
 
 
 def indent_xml(element, level=0):
@@ -247,9 +259,10 @@ def process_manifest(android_root, raw_manifest_path, snapshot_path, log_path):
                 project_dir,
                 checkout_path,
                 local_commits,
-                ["rewound from {} to {}".format(original_revision, candidate_sha)],
+                ["rewound to {}".format(candidate_sha)],
             )
 
+    normalize_manifest_data(root)
     indent_xml(root)
     tree.write(snapshot_path, encoding="UTF-8", xml_declaration=True)
     return processed, rewound, warnings
