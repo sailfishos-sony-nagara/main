@@ -1,4 +1,4 @@
-From c24799d2e2f24e7fa0e9fe031033cecdf42031de Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Rinigus <rinigus.git@gmail.com>
 Date: Wed, 15 Oct 2025 20:43:17 +0300
 Subject: [PATCH] Add kernel wakelock to reflect Android wakelock requests
@@ -7,13 +7,14 @@ Android prevents suspend using its internal service in addition to kernel wakelo
 wakelock reflecting the status of Android service and preventing suspend in kernel autosuspend
 mode
 
-Change-Id: I548f74ad073c430c21ba38ccaee6ad7f38dce67b
+Change-Id: Icd72fdfa503e0f88d0a0c5557f83aed4648173d3
 ---
- suspend/1.0/default/SystemSuspend.cpp | 19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ suspend/1.0/default/SystemSuspend.cpp         | 19 ++++++++++++++-----
+ .../default/android.system.suspend-service.rc |  2 +-
+ 2 files changed, 15 insertions(+), 6 deletions(-)
 
 diff --git a/suspend/1.0/default/SystemSuspend.cpp b/suspend/1.0/default/SystemSuspend.cpp
-index 4aa5189..9e17196 100644
+index 760aea8f11d988c74a36614bdfd681eeed718dad..3137b375986b74906e1f4d1650a3670355c90d48 100644
 --- a/suspend/1.0/default/SystemSuspend.cpp
 +++ b/suspend/1.0/default/SystemSuspend.cpp
 @@ -70,6 +70,9 @@ static constexpr char kUnknownWakeup[] = "unknown";
@@ -63,6 +64,13 @@ index 4aa5189..9e17196 100644
              mAutosuspendCondVar.notify_one();
          }
      } else {
--- 
-2.25.1
-
+diff --git a/suspend/1.0/default/android.system.suspend-service.rc b/suspend/1.0/default/android.system.suspend-service.rc
+index cafba78ef6ec2a3f2318d30fac5d5c792bb19e23..8c68214892428c9f7e8c490a575bda72c22513a6 100644
+--- a/suspend/1.0/default/android.system.suspend-service.rc
++++ b/suspend/1.0/default/android.system.suspend-service.rc
+@@ -1,4 +1,4 @@
+-service system_suspend /system/bin/hw/android.system.suspend-service
++service system_suspend /usr/libexec/droid-hybris/system/bin/hw/android.system.suspend-service
+     class early_hal
+     user system
+     group system wakelock
