@@ -101,19 +101,6 @@ source ~/.hadk.post
 RELEASE_DIR=$ANDROID_ROOT/releases/$RELEASE
 cd $RELEASE_DIR
 
-# Workaround KS generation bug. Looks like generated KS has a wrong
-# Currently generated `repo` commands for testing replace version with
-# "latest". Let's replace them back. This is fixed in Jolla's PR, but for now
-# the fix is needed
-#
-# to be replaced:
-#  repo --name=adaptation-community-xqct54-@RELEASE@ --baseurl=https://repo.sailfishos.org/obs/nemo:/testing:/hw:/sony:/nagara:/latest/sailfishos_latest_@ARCH@/
-#  repo --name=adaptation-community-common-xqct54-@RELEASE@ --baseurl=https://repo.sailfishos.org/obs/nemo:/testing:/hw:/common/sailfishos_latest_@ARCH@/
-if [ "$VERSION" == "testing" ]; then
-	sed -i "s|/latest/|/${RELMAJORMINOR}/|g" Jolla-@RELEASE@-$device-@ARCH@.ks
-	sed -i "s|/sailfishos_latest|/sailfishos_${RELMAJORMINOR}|g" Jolla-@RELEASE@-$device-@ARCH@.ks
-fi
-
 if [ -d "mic" ]; then
 	echo "Remove previous build"
 	rm -rf mic
@@ -121,7 +108,7 @@ fi
 
 sudo mic create fs --arch=$PORT_ARCH \
 	--pack-to=sfe-$device-$RELEASE$EXTRA_NAME.tar.gz \
-	--tokenmap=ARCH:$PORT_ARCH,RELEASE:$RELEASE,EXTRA_NAME:$EXTRA_NAME,DEVICEMODEL:$device \
+	--tokenmap=ARCH:$PORT_ARCH,RELEASE:$RELEASE,EXTRA_NAME:$EXTRA_NAME,DEVICEMODEL:$device,RELEASEMAJORMINOR:$RELMAJORMINOR \
 	--record-pkgs=name,url \
 	--outdir=mic Jolla-@RELEASE@-$device-@ARCH@.ks
 
